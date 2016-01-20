@@ -14,6 +14,7 @@ mod protocol;
 use protocol::packet::{read_packet};
 use protocol::status::*;
 use protocol::handshake::*;
+use protocol::login::*;
 
 fn handle_client(stream: TcpStream) {
     // Note: Panicking is okay in this function, since there's nothing we can
@@ -87,6 +88,26 @@ fn handle_client(stream: TcpStream) {
             let v = rpkt_ping(&mut stream).unwrap();
             println!("Status ping from {}", ip);
             wpkt_pong(&mut stream, v).unwrap();
+        }
+        2 => {
+            let packet_type = read_packet(&mut stream).unwrap();
+            if packet_type != 0 {
+                println!("Expected login start from {}, got {}!",
+                        ip, packet_type);
+                return;
+            }
+
+            // Encryption
+
+            // Authentication
+            
+            wpkt_login_success(&mut stream,
+                               // The actual UUID of the user "Player"
+                               "bd346dd5-ac1c-427d-87e8-73bdd4bf3e13"
+                               .to_string(),
+                               "Player".to_string());
+
+            // Compression
         }
         n => {
             println!("Invalid state {} from {}!", n, ip);

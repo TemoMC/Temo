@@ -48,3 +48,5 @@ pub fn wpkt_response(stream: &mut TcpStream, name: String, protocol: u8, maxplay
     packet.w_datum(MCDatum::String(format!("{{ \"version\": {{ \"name\": \"{}\", \"protocol\": {} }}, \"players\": {{ \"max\": {}, \"online\": {} }}, \"description\": {{ \"text\": \"{}\" }} }}", name, protocol, maxplayers, curplayers, description)));
     packet.w_packet(stream, 0)
 }
+
+// rpkt_response
