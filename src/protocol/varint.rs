@@ -38,16 +38,12 @@ impl ReadVarint for TcpStream {
 impl ToVarint for u32 {
     fn to_varint(&self) -> Vec<u8> {
         let mut result = Vec::new();
-        // The number we're converting
         let mut working = self.clone();
-        // Until we've used all of our bytes ...
         loop {
             // Get the 7 bits in the current byte, and zero
             // the flag bit
             let byte = (working & 0x7F) as u8;
-            // Begin working on the next byte
             working >>= 7;
-            // Are there any more bits to consume?
             if working == 0 {
                 // No, so just push the final bits and exit
                 result.push(byte);

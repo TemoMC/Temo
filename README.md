@@ -1,2 +1,2 @@
 # Temo
-The Temo super scriptable minecraft server, by a developer, for developers.
+The Temo server skeleton, for complete power over the server in a powerful language for developers.
