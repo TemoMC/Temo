@@ -31,7 +31,7 @@ pub enum MCDatum {
     // Metadata(),
     // Slot(),
     // NBTTag(),
-    // Position(), // 
+    Position(i32, i32, i32),
     // Angle (u8 or i8 [same result]),
     // UUID(u64),
     Bool(bool),
@@ -46,8 +46,8 @@ pub enum MCDatum {
     // Long(u64),
     ULong(u64),
     // VarLong(u64),
-    // Float(f32),
-    // Double(f64),
+    Float(f32),
+    Double(f64),
 }
 
 pub trait MCPacketBuf {
@@ -64,6 +64,9 @@ pub trait MCDataStream {
     fn r_int(&mut self) -> Result<u32>;
     fn r_varint(&mut self) -> Result<u32>;
     fn r_ulong(&mut self) -> Result<u64>;
+    // Position
+    fn r_float(&mut self) -> Result<f32>;
+    fn r_double(&mut self) -> Result<f64>;
 }
 
 fn read_n(reader: &mut TcpStream, n: u64) -> Result<Vec<u8>> {
@@ -128,6 +131,18 @@ impl MCDataStream for TcpStream {
         let mut rdr = Cursor::new(buf);
         rdr.read_u64::<BigEndian>().or_else(|e| Err(e.to_string()))
     }
+
+    fn r_float(&mut self) -> Result<f32> {
+        let buf = try!(read_n(self, 4));
+        let mut rdr = Cursor::new(buf);
+        rdr.read_f32::<BigEndian>().or_else(|e| Err(e.to_string()))
+    }
+
+    fn r_double(&mut self) -> Result<f64> {
+        let buf = try!(read_n(self, 8));
+        let mut rdr = Cursor::new(buf);
+        rdr.read_f64::<BigEndian>().or_else(|e| Err(e.to_string()))
+    }
 }
 
 fn serialize(val: MCDatum) -> Vec<u8> {
@@ -160,6 +175,18 @@ fn serialize(val: MCDatum) -> Vec<u8> {
         },
         MCDatum::ULong(v) => {
             vec.write_u64::<BigEndian>(v).unwrap();
+        },
+        MCDatum::Position(x, y, z) => {
+            let v:u64 = ((x as u64 & 0x3FFFFFF) << 38)
+                      | ((y as u64 & 0x0000FFF) << 26)
+                      | ((z as u64 & 0x3FFFFFF)      );
+            vec.write_u64::<BigEndian>(v).unwrap();
+        },
+        MCDatum::Float(v) => {
+            vec.write_f32::<BigEndian>(v).unwrap();
+        },
+        MCDatum::Double(v) => {
+            vec.write_f64::<BigEndian>(v).unwrap();
         },
         _ => {
             unimplemented!();

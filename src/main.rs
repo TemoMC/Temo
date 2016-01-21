@@ -6,17 +6,36 @@ extern crate byteorder;
 
 // BIG TODO: Encryption, compression
 
+
 use std::net::{TcpListener, TcpStream};
 use std::thread;
+use std::time::Duration;
 
 mod protocol;
 
-use protocol::packet::{read_packet};
+use protocol::packet::read_packet;
 use protocol::status::*;
 use protocol::handshake::*;
 use protocol::login::*;
+use protocol::play::*;
 
-fn handle_client(stream: TcpStream) {
+fn client_play(stream: &mut TcpStream, ip: String) {
+    wpkt_join_game(stream, 1, 1, 0, 3, 100, "default".to_string(), false);
+    // Spawn position
+    wpkt_spawn_position(stream, 0, 0, 0).unwrap();
+    // Player abilities
+    wpkt_player_pal(stream, 0.0, 0.0, 0.0, 0.0, 0.0, 0).unwrap();
+    // Verify player position and look
+    // Check client status
+    // Send world information
+    loop {
+        // Until gameplay is added, just keep blocking the loop
+        //let packet_type = read_packet(stream).unwrap();
+        thread::sleep(Duration::new(1000, 10));
+    }
+}
+
+pub fn handle_client(stream: TcpStream) {
     // Note: Panicking is okay in this function, since there's nothing we can
     // clean up. However, in the play function, there may be clean up and
     // saving to do, so there will be proper error handling there.
@@ -108,6 +127,8 @@ fn handle_client(stream: TcpStream) {
                                "Player".to_string());
 
             // Compression
+
+            client_play(&mut stream, ip.to_string());
         }
         n => {
             println!("Invalid state {} from {}!", n, ip);
@@ -130,7 +151,7 @@ fn main() {
                     .name("Handler thread".to_string())
                     .spawn(move|| {
                         handle_client(stream);
-                    });
+                    }).unwrap();
             },
             Err(_) => { }
         }

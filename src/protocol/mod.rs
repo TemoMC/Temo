@@ -7,3 +7,4 @@ pub mod handshake;
 pub mod packet;
 pub mod varint;
 pub mod login;
+pub mod play;
